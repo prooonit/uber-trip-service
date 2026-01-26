@@ -3,17 +3,15 @@ const redisClient = require("../../config/redis");
 const GEO_KEY = "drivers:geo";
 
 exports.storeLocation = async (driverId, lat, lng) => {
-  await redisClient.geoAdd(GEO_KEY, {
-    longitude: lng,
-    latitude: lat,
-    member: driverId
-  });
+  if (lat && lng) {
+    await redisClient.geoAdd(GEO_KEY, {
+      longitude: lng,
+      latitude: lat,
+      member: driverId,
+    });
+  }
 
-  await redisClient.set(
-    `driver:heartbeat:${driverId}`,
-    "1",
-    { EX: 30 }
-  );
+  await redisClient.set(`driver:heartbeat:${driverId}`, "1", { EX: 30 });
 };
 
 exports.removeDriver = async (driverId) => {
@@ -22,19 +20,18 @@ exports.removeDriver = async (driverId) => {
 };
 
 exports.findNearbyDrivers = async (lat, lng, radius) => {
- 
   const nearbyDrivers = await redisClient.geoSearch(
     GEO_KEY,
     { longitude: lng, latitude: lat },
-    { radius: radius, unit: "km" }
+    { radius: radius, unit: "km" },
   );
 
   if (!nearbyDrivers.length) return [];
 
-// we are using redis pipeline to check heartbeats
+  // we are using redis pipeline to check heartbeats
   const multi = redisClient.multi();
 
-  nearbyDrivers.forEach(driverId => {
+  nearbyDrivers.forEach((driverId) => {
     multi.exists(`driver:heartbeat:${driverId}`);
   });
 
