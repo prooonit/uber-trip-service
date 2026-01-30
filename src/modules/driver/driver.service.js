@@ -39,3 +39,12 @@ exports.findNearbyDrivers = async (lat, lng, radius) => {
 
   return nearbyDrivers.filter((_, i) => results[i][1] === 1);
 };
+
+
+exports.storeNotificationSubscription = async (driverId, subscription) => {
+ await redisClient.set(
+      `driver:${driver_id}:webpush`,
+      JSON.stringify(subscription),
+      { EX: 24 * 60 * 60 } // 24 hours
+    );
+}

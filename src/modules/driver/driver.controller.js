@@ -29,3 +29,19 @@ exports.getNearbyDrivers = async (req, res) => {
   const drivers = await driverService.findNearbyDrivers(lat, lng, radius);
   return res.json({ drivers }); 
  }
+
+
+exports.manageNotifications = async (req, res) => {
+    try{
+      const { driver_id, subscription } = req.body;
+
+      if(!driver_id || !subscription) {
+        return res.status(400).json({ message: "Missing data" });
+      }
+      await driverService.storeNotificationSubscription(driver_id, subscription);
+      return res.json({ message: "Subscription stored" });
+
+    }catch(error){
+       return  res.status(500).json({ message: "Failed to store subscription" });
+    }
+ }
