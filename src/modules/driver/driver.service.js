@@ -41,7 +41,7 @@ exports.findNearbyDrivers = async (lat, lng, radius) => {
 };
 
 
-exports.storeNotificationSubscription = async (driverId, subscription) => {
+exports.storeNotificationSubscription = async (driver_id, subscription) => {
  await redisClient.set(
       `driver:${driver_id}:webpush`,
       JSON.stringify(subscription),

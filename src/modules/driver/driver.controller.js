@@ -32,9 +32,9 @@ exports.getNearbyDrivers = async (req, res) => {
 
 
 exports.manageNotifications = async (req, res) => {
+
     try{
       const { driver_id, subscription } = req.body;
-
       if(!driver_id || !subscription) {
         return res.status(400).json({ message: "Missing data" });
       }
@@ -44,4 +44,5 @@ exports.manageNotifications = async (req, res) => {
     }catch(error){
        return  res.status(500).json({ message: "Failed to store subscription" });
     }
+    
  }
