@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 const app = require("./app");
 
 app.listen(3000, () => {
