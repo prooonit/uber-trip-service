@@ -59,3 +59,13 @@ export const acceptRideService = async ({driverId, rideId})=>{
 
    return res.json({ message: "Ride accepted successfully" });  
 }
+
+export const rejectRideService = async ({driverId, rideId})=>{
+  await redisClient.del(`driver:${driverId}:busy`);
+
+  return res.json({
+    message: "Ride rejected",
+    rideId,
+    driverId,
+  });
+}

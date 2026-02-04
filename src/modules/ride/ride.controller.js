@@ -1,5 +1,6 @@
 import { confirmRideService } from "./ride.service.js";
 import { acceptRideService } from "./ride.service.js";
+import { rejectRideService } from "./ride.service.js";
 
 export const confirmRide = async (req, res) => {
   try {
@@ -28,6 +29,17 @@ export const acceptRide = async(req, res)=>{
     }
     
     const result = await acceptRideService({driverId: driver_id, rideId: ride_id});
+
+     return result;
+}
+export const rejectRide = async(req, res)=>{
+    const {driver_id,ride_id} = req.body;
+
+    if(!driver_id || !ride_id){
+        return res.status(400).json({message: "driver_id and ride_id are required"});
+    }
+    
+    const result = await rejectRideService({driverId: driver_id, rideId: ride_id});
 
      return result;
 }
