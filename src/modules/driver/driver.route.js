@@ -1,12 +1,14 @@
-const express = require("express");
+import express from "express";
+import {updateStatus,getNearbyDrivers,manageNotifications} from "./driver.controller.js";
+
 const router = express.Router();
-const { updateStatus } = require("./driver.controller");
-const { getNearbyDrivers } = require("./driver.controller");
-const { manageNotifications } = require("./driver.controller");
+
+router.get("/healthcheck", (req, res) => {
+  res.status(200).send("Driver Service is up and running");
+});
 
 router.post("/status", updateStatus);
-router.get("/nearby",getNearbyDrivers);
-router.post("/notify",manageNotifications);
+router.get("/nearby", getNearbyDrivers);
+router.post("/notify", manageNotifications);
 
-
-module.exports = router;
+export default router;

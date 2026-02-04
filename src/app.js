@@ -1,9 +1,12 @@
-const express = require("express");
+import express from "express";
+import driverRoutes from "./modules/driver/driver.route.js";
+import rideRoutes from "./modules/ride/ride.route.js";
+
 const app = express();
 
 app.use(express.json());
 
-const driverRoutes = require("./modules/driver/driver.route");
 app.use("/driver", driverRoutes);
+app.use("/ride", rideRoutes);
 
-module.exports = app;
+export default app;

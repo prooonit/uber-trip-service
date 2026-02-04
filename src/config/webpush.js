@@ -1,5 +1,5 @@
-
-const webpush = require('web-push');
+import "dotenv/config";
+import webPush from "web-push";
 
 webPush.setVapidDetails(
   "mailto:pronit25io045@satiengg.in",
@@ -7,4 +7,4 @@ webPush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 );
 
-module.exports = webpush;
+export default webPush;

@@ -1,7 +1,10 @@
+import app from "./app.js";
 import dotenv from "dotenv";
-dotenv.config();
-const app = require("./app");
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Location Service running on port ${PORT}`);
 });

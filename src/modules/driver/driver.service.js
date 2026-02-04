@@ -1,8 +1,7 @@
-const redisClient = require("../../config/redis");
-
+import redisClient from "../../config/redis.js";
 const GEO_KEY = "drivers:geo";
 
-exports.storeLocation = async (driverId, lat, lng) => {
+export const storeLocation = async (driverId, lat, lng) => {
   if (lat && lng) {
     await redisClient.geoAdd(GEO_KEY, {
       longitude: lng,
@@ -12,14 +11,18 @@ exports.storeLocation = async (driverId, lat, lng) => {
   }
 
   await redisClient.set(`driver:heartbeat:${driverId}`, "1", { EX: 30 });
+  const rideId = await redisClient.get(`driver:busy:${driverId}`);
+  if (rideId) {
+    await redisClient.set(`driver:busy:${driverId}`, rideId, { EX: 60 });
+  }
 };
 
-exports.removeDriver = async (driverId) => {
+export const removeDriver = async (driverId) => {
   await redisClient.zRem(GEO_KEY, driverId);
   await redisClient.del(`driver:heartbeat:${driverId}`);
 };
 
-exports.findNearbyDrivers = async (lat, lng, radius) => {
+export const findNearbyDrivers = async (lat, lng, radius) => {
   const nearbyDrivers = await redisClient.geoSearch(
     GEO_KEY,
     { longitude: lng, latitude: lat },
@@ -33,18 +36,25 @@ exports.findNearbyDrivers = async (lat, lng, radius) => {
 
   nearbyDrivers.forEach((driverId) => {
     multi.exists(`driver:heartbeat:${driverId}`);
+    multi.exists(`driver:busy:${driverId}`);
   });
 
   const results = await multi.exec();
 
-  return nearbyDrivers.filter((_, i) => results[i][1] === 1);
+  return nearbyDrivers.filter((_, i) => {
+    const heartbeatExists = results[i * 2][1] === 1;
+    const busyExists = results[i * 2 + 1][1] === 0; // NOT busy
+    return heartbeatExists && busyExists;
+  });
 };
 
-
-exports.storeNotificationSubscription = async (driver_id, subscription) => {
- await redisClient.set(
-      `driver:${driver_id}:webpush`,
-      JSON.stringify(subscription),
-      { EX: 24 * 60 * 60 } // 24 hours
-    );
-}
+export const storeNotificationSubscription = async (
+  driver_id,
+  subscription,
+) => {
+  await redisClient.set(
+    `driver:${driver_id}:webpush`,
+    JSON.stringify(subscription),
+    { EX: 24 * 60 * 60 }, // 24 hours
+  );
+};

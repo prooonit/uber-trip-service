@@ -1,6 +1,7 @@
-const driverService = require("./driver.service");
+import * as driverService from "./driver.service.js";
 
-exports.updateStatus = async (req, res) => {
+
+export const updateStatus = async (req, res) => {
   
   const { driver_id, status, lat, lng } = req.body;
 
@@ -21,7 +22,7 @@ exports.updateStatus = async (req, res) => {
   res.json({ message: "Status updated" });
 };
 
-exports.getNearbyDrivers = async (req, res) => {
+export const getNearbyDrivers = async (req, res) => {
   const { lat, lng, radius } = req.query;  
   if(!lat || !lng || !radius) {
     return res.status(400).json({ message: "Missing query parameters" });
@@ -31,7 +32,7 @@ exports.getNearbyDrivers = async (req, res) => {
  }
 
 
-exports.manageNotifications = async (req, res) => {
+export const manageNotifications = async (req, res) => {
 
     try{
       const { driver_id, subscription } = req.body;

@@ -1,17 +1,13 @@
-const redisClient = require("../../config/redis");
-const { v4: uuidv4 } = require("uuid");
-const { findNearbyDrivers } = require("../driver/driver.service");
-const rideMatchingQueue = require("../../queues/rideMatching.queue");
-
-
+import redisClient from "../../config/redis.js";
+import { v4 as uuidv4 } from "uuid";
+import { findNearbyDrivers } from "../driver/driver.service.js";
+import {rideMatchingQueue} from "../../queues/rideMatching.queue.js";
 
 const MAX_QUEUE_TTL = 120;
 
-
-exports.confirmRideService = async ({ userId, pickup, drop }) => {
+export const confirmRideService = async ({ userId, pickup, drop }) => {
   const rideId = uuidv4();
 
-  
   const nearbyDrivers = await findNearbyDrivers(
     pickup.lat,
     pickup.lng,
@@ -22,17 +18,16 @@ exports.confirmRideService = async ({ userId, pickup, drop }) => {
     return { status: "NO_DRIVERS_AVAILABLE" };
   }
 
-  
   await redisClient.rPush(
     `ride:${rideId}:queue`,
-    nearbyDrivers.map(d => d.driverId)
+    nearbyDrivers
   );
 
-  
-  await redisClient.set(`ride:${rideId}:status`, "PENDING", { EX: MAX_QUEUE_TTL });
+  await redisClient.set(`ride:${rideId}:status`, "PENDING", {
+    EX: MAX_QUEUE_TTL,
+  });
   await redisClient.set(`ride:${rideId}:wave`, 0);
 
-  
   await rideMatchingQueue.add(
     "MATCH_WAVE",
     { rideId, pickup, drop },
@@ -42,6 +37,25 @@ exports.confirmRideService = async ({ userId, pickup, drop }) => {
   return {
     status: "PENDING",
     rideId,
-    message: "Finding nearby drivers"
+    message: "Finding nearby drivers",
   };
 };
+export const acceptRideService = async ({driverId, rideId})=>{
+  const lock = await redisClient.set(`ride:${rideId}:lock`, driverId, {
+    NX: true,
+    EX: 30,
+  });
+  if (!lock) {
+    return res.status(409).json({
+      message: "Ride already accepted by another driver",
+    });
+  }
+
+  await redisClient.set(`ride:${rideId}:assigned`, driverId);
+  await redisClient.set(`ride:${rideId}:status`, "ASSIGNED");
+
+// driver accepts ride
+   await redisClient.set(`driver:busy:${driverId}`,rideId,{ EX: 60 });
+
+   return res.json({ message: "Ride accepted successfully" });  
+}
