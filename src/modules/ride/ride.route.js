@@ -5,7 +5,7 @@ import {rejectRide} from "./ride.controller.js";
 
 const router = express.Router();
 
-router.post("/confirm", confirmRide);
+router.post("/confirm-ride", confirmRide);
 router.get("/healthcheck", (req, res) => {
   res.status(200).send("pronit is up and running");
 });

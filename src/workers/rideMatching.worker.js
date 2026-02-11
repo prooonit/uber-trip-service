@@ -1,7 +1,6 @@
 import { Worker } from "bullmq";
 import redisClient from "../config/redis.js";          // node-redis
 import bullRedis from "../config/bullmq.redis.js";     // ioredis
-import { notifyDriver } from "../modules/ride/ride.notification.js";
 
 const FANOUT = 3;
 const BUSY_TTL = 10;
@@ -31,8 +30,8 @@ new Worker(
       await redisClient.set(`ride:${rideId}:status`, "FAILED", { EX: 30 });
       return;
     }
-
     for (const driverId of drivers) {
+      console.log(driverId);
       const locked = await redisClient.set(
         `driver:${driverId}:busy`,
         rideId,
@@ -40,12 +39,14 @@ new Worker(
       );
 
       if (locked) {
+        /*
         await notifyDriver(driverId, {
           rideId,
           pickup,
           drop,
           expiresIn: BUSY_TTL
-        });
+        });*/ 
+        console.log(`Notified driver ${driverId} about ride ${rideId}`);
       }
     }
 

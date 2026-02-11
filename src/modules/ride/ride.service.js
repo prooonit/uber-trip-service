@@ -3,11 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import { findNearbyDrivers } from "../driver/driver.service.js";
 import {rideMatchingQueue} from "../../queues/rideMatching.queue.js";
 
+
 const MAX_QUEUE_TTL = 120;
 
 export const confirmRideService = async ({ userId, pickup, drop }) => {
   const rideId = uuidv4();
-
+   console.log(rideId);
   const nearbyDrivers = await findNearbyDrivers(
     pickup.lat,
     pickup.lng,

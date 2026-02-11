@@ -1,5 +1,6 @@
 import app from "./app.js";
 import dotenv from "dotenv";
+import "./workers/rideMatching.worker.js";
 
 dotenv.config();
 
