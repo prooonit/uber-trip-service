@@ -22,15 +22,19 @@ export const confirmRide = async (req, res) => {
 };
 
 export const acceptRide = async(req, res)=>{
-    const {driver_id,ride_id} = req.body;
+    try {
+    const result = await acceptRideService(req.body);
 
-    if(!driver_id || !ride_id){
-        return res.status(400).json({message: "driver_id and ride_id are required"});
+    if (!result.success) {
+      return res.status(409).json({ message: result.message });
     }
-    
-    const result = await acceptRideService({driverId: driver_id, rideId: ride_id});
 
-     return result;
+    return res.json({ message: "Ride accepted successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 }
 export const rejectRide = async(req, res)=>{
     const {driver_id,ride_id} = req.body;

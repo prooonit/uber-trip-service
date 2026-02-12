@@ -47,9 +47,7 @@ export const acceptRideService = async ({driverId, rideId})=>{
     EX: 30,
   });
   if (!lock) {
-    return res.status(409).json({
-      message: "Ride already accepted by another driver",
-    });
+    return {success: false, message: "Ride already accepted by another driver"};
   }
 
   await redisClient.set(`ride:${rideId}:assigned`, driverId);
@@ -57,16 +55,20 @@ export const acceptRideService = async ({driverId, rideId})=>{
 
 // driver accepts ride
    await redisClient.set(`driver:busy:${driverId}`,rideId,{ EX: 60 });
-
-   return res.json({ message: "Ride accepted successfully" });  
+   return { success: true,message: "Ride accepted",rideId,driverId,};  
 }
 
-export const rejectRideService = async ({driverId, rideId})=>{
-  await redisClient.del(`driver:${driverId}:busy`);
+export const rejectRideService = async ({ driverId, rideId }) => {
+  const busyRide = await redisClient.get(`driver:${driverId}:busy`);
 
-  return res.json({
+  // Only remove if busy is for this ride
+  if (busyRide === rideId) {
+    await redisClient.del(`driver:${driverId}:busy`);
+  }
+  return {
+    success: true,
     message: "Ride rejected",
     rideId,
-    driverId,
-  });
-}
+    driverId
+  };
+};
