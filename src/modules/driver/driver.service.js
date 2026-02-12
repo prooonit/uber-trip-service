@@ -10,7 +10,7 @@ export const storeLocation = async (driverId, lat, lng) => {
     });
   }
 
-  await redisClient.set(`driver:heartbeat:${driverId}`, "1", { EX: 30 });
+  await redisClient.set(`driver:heartbeat:${driverId}`, "1");
   const rideId = await redisClient.get(`driver:busy:${driverId}`);
   if (rideId) {
     await redisClient.set(`driver:busy:${driverId}`, rideId, { EX: 60 });
@@ -20,6 +20,7 @@ export const storeLocation = async (driverId, lat, lng) => {
 export const removeDriver = async (driverId) => {
   await redisClient.zRem(GEO_KEY, driverId);
   await redisClient.del(`driver:heartbeat:${driverId}`);
+  await redisClient.del(`driver:busy:${driverId}`);
 };
 
 export const findNearbyDrivers = async (lat, lng, radius) => {
@@ -30,7 +31,6 @@ export const findNearbyDrivers = async (lat, lng, radius) => {
   );
 
   if (!nearbyDrivers.length) return [];
-
   // we are using redis pipeline to check heartbeats
   const multi = redisClient.multi();
 
@@ -40,11 +40,12 @@ export const findNearbyDrivers = async (lat, lng, radius) => {
   });
 
   const results = await multi.exec();
-
+  console.log(results);
   return nearbyDrivers.filter((_, i) => {
-    const heartbeatExists = results[i * 2][1] === 1;
-    const busyExists = results[i * 2 + 1][1] === 0; // NOT busy
-    return heartbeatExists && busyExists;
+    const heartbeatExists = results[i * 2] === 1;
+    const isBusy = results[i * 2 + 1] === 1;
+
+    return heartbeatExists && !isBusy;
   });
 };
 

@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import redisClient from "../config/redis.js";          // node-redis
 import bullRedis from "../config/bullmq.redis.js";     // ioredis
+import { notifyDriver } from "../modules/ride/ride.notification.js";
 
 const FANOUT = 3;
 const BUSY_TTL = 10;
@@ -10,7 +11,7 @@ new Worker(
   "ride-matching",
   async (job) => {
     const { rideId, pickup, drop } = job.data;
-
+  
     // stop if already assigned
     if (await redisClient.exists(`ride:${rideId}:assigned`)) return;
 
@@ -39,13 +40,13 @@ new Worker(
       );
 
       if (locked) {
-        /*
+        console.log(rideId, driverId,drop);
         await notifyDriver(driverId, {
           rideId,
           pickup,
           drop,
           expiresIn: BUSY_TTL
-        });*/ 
+        });
         console.log(`Notified driver ${driverId} about ride ${rideId}`);
       }
     }

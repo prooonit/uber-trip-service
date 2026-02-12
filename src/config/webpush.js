@@ -1,4 +1,3 @@
-import "dotenv/config";
 import webPush from "web-push";
 
 webPush.setVapidDetails(

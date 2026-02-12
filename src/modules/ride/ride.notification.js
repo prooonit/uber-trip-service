@@ -1,30 +1,36 @@
-const redisClient = require('../../config/redis');
-const webpush = require('../../config/webpush');
+import redisClient from "../../config/redis.js";
+import webPush from "../../config/webpush.js";
 
-exports.notifyDriver = async (driverId, payload) => {
-    try{
-        const address = await redisClient.get(`driver:${driverId}:webpush`);
-        if(!address) {
-            console.log(`No subscription found for driver ${driverId}`);
-            return;
-        }
-        const subscription = JSON.parse(address);
-        const pushpayload = JSON.stringify({
-            type: "RIDE_REQUEST",
-            rideId: payload.rideId,
-            pickup: payload.pickup,
-            drop: payload.drop,
-            expiresIn: payload.expiresIn,
-        });
-        await webpush.sendNotification(subscription, pushpayload);
-        console.log(`Notification sent to driver ${driverId}`);
-    }catch(error){
 
-        if(error.statusCode === 410 || error.statusCode === 404){
-            await redisClient.del(`driver:${driverId}:webpush`);
-            console.log(`Subscription for driver ${driverId} is no longer valid and has been removed.`);
-            return;
-        }
-        console.error(`Failed to send notification to driver ${driverId}:`, error);
+export const notifyDriver = async (driverId, payload) => {
+  try {
+    const subscriptionData = await redisClient.get(
+      `driver:${driverId}:webpush`
+    );
+
+    if (!subscriptionData) {
+      console.log(`No subscription for driver ${driverId}`);
+      return;
     }
-}
+
+    const subscription = JSON.parse(subscriptionData);
+
+    await webPush.sendNotification(
+      subscription,
+      JSON.stringify({
+        type: "RIDE_REQUEST",
+        ...payload
+      })
+    );
+
+    console.log(`✅ Push sent to driver ${driverId}`);
+  } catch (error) {
+    console.error("Push error:", error.message);
+
+    // remove expired subscription
+    if (error.statusCode === 410 || error.statusCode === 404) {
+      await redisClient.del(`driver:${driverId}:webpush`);
+      console.log(`🗑 Removed expired subscription for ${driverId}`);
+    }
+  }
+};
