@@ -23,6 +23,7 @@ export const confirmRide = async (req, res) => {
 
 export const acceptRide = async(req, res)=>{
     try {
+      console.log(req.body);
     const result = await acceptRideService(req.body);
 
     if (!result.success) {

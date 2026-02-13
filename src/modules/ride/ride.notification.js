@@ -19,6 +19,7 @@ export const notifyDriver = async (driverId, payload) => {
       subscription,
       JSON.stringify({
         type: "RIDE_REQUEST",
+        driverId,
         ...payload
       })
     );

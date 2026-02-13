@@ -42,6 +42,10 @@ export const confirmRideService = async ({ userId, pickup, drop }) => {
   };
 };
 export const acceptRideService = async ({driverId, rideId})=>{
+  const ride= redisClient.get(`driver:busy:${driverId}`);
+  if(ride !== rideId){
+    return {success: false, message: "Ride not found in driver's busy list"};
+  }
   const lock = await redisClient.set(`ride:${rideId}:lock`, driverId, {
     NX: true,
     EX: 30,
